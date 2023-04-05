@@ -79,6 +79,7 @@ class Kameleo:
         print(f'Usunięto profil o ID - {self.profile.id}')
 
     def saveInFile(self):
+        self.dictProfile = {}
         try:
             with open("profile.txt", "r") as f:
                 self.dictProfile = json.load(f)
@@ -89,10 +90,12 @@ class Kameleo:
                 else:
                     if self.dictProfile[self.name] != self.profile.id:
                         print("ID nie są takie same")
-        except io.UnsupportedOperation:
-            self.dictProfile = {}
-            self.dictProfile[self.name] = self.profile.id
-            json.dump(self.dictProfile, f)
+        except (io.UnsupportedOperation, FileNotFoundError, json.JSONDecodeError):
+            print("profile.txt nie istenie lub nie posiada żadnych profili. Tworzę plik.")
+            with open("profile.txt", "w") as f:
+                self.dictProfile[self.name] = self.profile.id
+                json.dump(self.dictProfile, f)
+
         print("Zapisano ID profilu")
 
     def checkIDprofileByName(self, name):

@@ -33,21 +33,6 @@ def RemoveFirstLineFile(path):
     with open(path, 'w') as fout:
         fout.writelines(data[1:])
 
-def PickEmail(path):
-    while True:
-        try:
-            line = ReadFirstLineFile(path)
-            if not line.strip():
-                raise Exception("Nie ma emaili!")
-            dane = line.split(":")
-            email = dane[0]
-            passwdEmail = dane[1]
-            MailBox('outlook.office365.com').login(email, passwdEmail)
-            return dane
-        except:
-            RemoveFirstLineFile(path)
-            continue
-
 def CodeFromEmail(email):
     while True:
         with MailBox('outlook.office365.com').login(email[0], email[1]) as mailbox:
