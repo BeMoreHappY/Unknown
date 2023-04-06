@@ -2,7 +2,6 @@ import germanNameGenerator as namegen
 from conditions import RemoveFirstLineFile, ReadFirstLineFile
 from imap_tools import MailBox, AND, A, OR
 class Data:
-
     def __init__(self):
         self.firstName = self.firstNamefunc()
         self.lastName = self.lastNamefunc()
