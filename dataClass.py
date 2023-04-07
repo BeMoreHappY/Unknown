@@ -1,12 +1,18 @@
 import germanNameGenerator as namegen
 from conditions import RemoveFirstLineFile, ReadFirstLineFile
 from imap_tools import MailBox, AND, A, OR
+
+
 class Data:
+    firstName = None
+    lastName = None
+    email = None
+    passwd = None
+
     def __init__(self):
         self.firstName = self.firstNamefunc()
         self.lastName = self.lastNamefunc()
-        self.email = None
-        self.passwd = None
+
     def firstNamefunc(self):
         return namegen.get_random_name().strip()
 
@@ -28,3 +34,7 @@ class Data:
             except:
                 RemoveFirstLineFile(path)
                 continue
+
+    @staticmethod
+    def genFullName():
+        return f'{namegen.get_random_name()} {namegen.get_random_familyname()}'
