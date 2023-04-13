@@ -23,7 +23,7 @@ class Kameleo:
     proxy = None
 
     def __init__(self, *, profileName=None, fullName=None, changeProxy=False, IP="192.168.1.2", proxyPort=30000,
-                 port=5051, device_type='desktop', language="de-DE"):
+                 port=5051, path, device_type='desktop', language="de-DE", profile_id=None):
         """
 
         :param profileName: For existing profile
@@ -38,21 +38,23 @@ class Kameleo:
         self.proxy = [IP, proxyPort]
         self.port = port
         if profileName is not None:
-            self.path = f"C:\\Users\\Mati\\Desktop\\{profileName}.kameleo"
             self.name = profileName
-            self.loadProfile(self.path)
+            self.loadProfile(path)
         else:
-            self.base_profiles = self.client.search_base_profiles(
-                os_family="windows",
-                device_type='desktop',
-                language="de-DE"
-            )
-            if changeProxy:
-                self.proxyChange()
-            print(self.proxy)
-            self.createProfile("".join(fullName.replace(" ", "-")), self.proxy[0], self.proxy[1])
+            if profile_id is not None:
+                self.loadProfile(path, profile_id)
+            else:
+                self.base_profiles = self.client.search_base_profiles(
+                    os_family="windows",
+                    device_type='desktop',
+                    language="de-DE"
+                )
+                if changeProxy:
+                    self.proxyChange()
+                self.createProfile(fullName, self.proxy[0], self.proxy[1], path)
 
-    def createProfile(self, name, ip, port):
+    def createProfile(self, name, ip, port, path):
+        print("Przed utworzono")
         create_profile_request = BuilderForCreateProfile \
             .for_base_profile(self.base_profiles[0].id) \
             .set_name(name) \
@@ -61,9 +63,8 @@ class Kameleo:
             .build()
         self.profile = self.client.create_profile(body=create_profile_request)
         self.name = name
-        self.path = f"C:\\Users\\Mati\\Desktop\\{name}.kameleo"
+        self.path = path + f"{self.name}.kameleo"
         print(f'Utworzono profil o ID - {self.profile.id}')
-        self.saveInFile()
 
     def readProfile(self):
         self.client.list_profiles()
@@ -100,53 +101,18 @@ class Kameleo:
         self.client.save_profile(self.profile.id, body=SaveProfileRequest(path=path))
         print(f'Zapisano profil o ID - {self.profile.id}')
 
-    def loadProfile(self, path):
+    def loadProfile(self, path, profile_id):
         try:
-            self.path = path
             self.profile = self.client.load_profile(body=LoadProfileRequest(path=path))
             print("Wczytuje profil z pliku")
         except ProblemResponseException:
-            profileId = self.checkIDprofileByName(self.name)
-            if profileId != False:
-                self.setProfile(profileId)
-                print("Wczytuje profil z ID")
+            self.setProfile(profile_id)
+            print("Wczytuje profil z ID")
         print(f'Załadowano profil o ID - {self.profile.id}')
 
     def deleteProfile(self):
         self.client.delete_profile(self.profile.id)
         print(f'Usunięto profil o ID - {self.profile.id}')
-
-    def saveInFile(self):
-        dictProfile = {}
-        try:
-            with open("profile.txt", "r") as f:
-                dictProfile = json.load(f)
-            with open("profile.txt", "w") as f:
-                if self.name not in dictProfile:
-                    dictProfile[self.name] = self.profile.id
-                    json.dump(dictProfile, f)
-                else:
-                    if dictProfile[self.name] != self.profile.id:
-                        print("ID nie są takie same")
-        except (io.UnsupportedOperation, FileNotFoundError, json.JSONDecodeError):
-            print("profile.txt nie istenie lub nie posiada żadnych profili. Tworzę plik.")
-            with open("profile.txt", "w") as f:
-                dictProfile[self.name] = self.profile.id
-                json.dump(dictProfile, f, indent=4)
-
-        print("Zapisano ID profilu")
-
-    def checkIDprofileByName(self, name):
-        with open("profile.txt", "r") as f:
-            try:
-                dictProfile = json.load(f)
-                if name not in dictProfile:
-                    print("Nie ma takiego profilu o podanej nazwie")
-                    return False
-                return dictProfile[name]
-            except io.UnsupportedOperation:
-                print("Nie ma takiego profilu o podanej nazwie")
-                return False
 
     def proxyChange(self):
         self.proxy = requests.get(

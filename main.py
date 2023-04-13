@@ -12,10 +12,15 @@ from conditions import WaitForElementPresence, WaitForElementClicable, CodeFromE
 from dataClass import Data
 from multiprocessing import Process, Pipe, Lock, Barrier
 from threading import Thread
+from guiMain import window
+from database import Database
+from PyQt6 import QtWidgets
+import sys
+
 
 def runKameleo(conn2, i, lock):
     kameleo = Kameleo(fullName=Data.genFullName())
-    #kameleo = Kameleo(profileName="Ilse-Kirchner")
+    # kameleo = Kameleo(profileName="Ilse-Kirchner")
     kameleo.startProfile()
     kameleo.driver.get("https://api.ipify.org")
 
@@ -30,6 +35,8 @@ def runKameleo(conn2, i, lock):
             case "wylacz":
                 kameleo.stopProfile()
                 kameleo.stopClient()
+
+
 def wieprz():
     print("wieprz")
 
@@ -38,43 +45,56 @@ def println(message, lock):
     print(message)
     lock.release()
 
-
-# def chooseMethod(int):
 if __name__ == "__main__":
-    c = []
-    p = []
-    lock = Lock()
-    #kamelObj = Kameleo(fullName=Dane.fullName())
-    for _ in range(5):
-        host_conn, process_conn = Pipe()
-        c.append([host_conn, process_conn])
-    for i in range(5):
-        pr = Process(target=runKameleo, args=(c[i][1], i, lock))
-        pr.start()
-        p.append(pr)
-    for i in c:
-        message = i[0].recv()
-        println(message, lock)
+    db = Database()
+    # db.addToTable(["wiep4rz1e011", "pieprz", "repsz", "tepsz", "kiepsz"])
+    MainApp = QtWidgets.QApplication(sys.argv)
+    win = window(db)
+    win.show()
+    sys.exit(MainApp.exec())
 
 
-    while True:
-        println("Komu wydać rozkazy?: ", lock)
-        i = 0
-        for proc in p:
-            if proc.is_alive():
-                println("Processor " + str(i) + " is running...", lock)
-            i += 1
-        x = int(input())
-        println("Jaki rozkaz?: ", lock)
-        y = input()
-        c[x][0].send(y)
-
-        for i in c:
-            if i[0].poll(0):
-                data = i[0].recv()
-                println(data, lock)
 
 
+
+
+
+
+
+
+    # t = Thread(target=app)
+    # t.start()
+    # c = []
+    # p = []
+    # lock = Lock()
+    # # kamelObj = Kameleo(fullName=Dane.fullName())
+    # for _ in range(0):
+    #     host_conn, process_conn = Pipe()
+    #     c.append([host_conn, process_conn])
+    # for i in range(0):
+    #     pr = Process(target=runKameleo, args=(c[i][1], i, lock))
+    #     pr.start()
+    #     p.append(pr)
+    # for i in c:
+    #     message = i[0].recv()
+    #     println(message, lock)
+    #
+    # while True:
+    #     i = 0
+    #     for proc in p:
+    #         if proc.is_alive():
+    #             println("Processor " + str(i) + " is running...", lock)
+    #         i += 1
+    #     println("Komu wydać rozkazy?: ", lock)
+    #     x = input()
+    #     println("Jaki rozkaz?: ", lock)
+    #     y = input()
+    #     c[int(x)][0].send(y)
+    #
+    #     for i in c:
+    #         if i[0].poll(0):
+    #             data = i[0].recv()
+    #             println(data, lock)
 
     # kamelObj = Kameleo(profileName="Ilse-Kirchner")
     # kamelObj.startProfile()
@@ -83,7 +103,6 @@ if __name__ == "__main__":
 
     # for p in process:
     #     p.join()
-
 
     # while True:
     #     x = input("1 - Wylacz i zapisz   2 - Wylacz bez zapisu  3 - uruchom jeszcze raz 4 - Usuń profil")
